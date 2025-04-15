@@ -32,3 +32,27 @@ class ProcessAPIView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class TaskStatusAPIView(APIView):
+    
+    def get(self, request, task_id):
+        try:
+            process_req = ProcessRequest.objects.get(task_id=task_id)
+        except ProcessRequest.DoesNotExist:
+            return Response(
+                {"error": "Task not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get task status from Celery
+        task_result = AsyncResult(task_id)
+        
+        response_data = {
+            "task_id": task_id,
+            "status": task_result.status,
+            "result": task_result.result if task_result.successful() else None
+        }
+        
+        serializer = TaskStatusSerializer(data=response_data)
+        serializer.is_valid()  
+        
+        return Response(serializer.data)
