@@ -5,8 +5,28 @@ from celery.result import AsyncResult
 from .models import ProcessRequest
 from .serializers import ProcessRequestSerializer, ProcessResponseSerializer, TaskStatusSerializer
 from .tasks import process_request
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
-
+@extend_schema(
+    description="Submit a new processing request",
+    request=ProcessRequestSerializer,
+    responses={
+        202: ProcessResponseSerializer,
+        400: {"description": "Invalid input"}
+    },
+    examples=[
+        OpenApiExample(
+            'Example Request',
+            value={"email": "user@example.com", "message": "Please process this"},
+            request_only=True
+        ),
+        OpenApiExample(
+            'Example Response',
+            value={"id": 1, "task_id": "test123", "status": "PENDING"},
+            response_only=True
+        )
+    ]
+)
 class ProcessAPIView(APIView):
     
     def post(self, request):
@@ -32,6 +52,22 @@ class ProcessAPIView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(
+    description="Check the status of a processing task",
+    parameters=[
+        OpenApiParameter(
+            name='task_id',
+            description='Celery Task ID',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH
+        )
+    ],
+    responses={
+        200: TaskStatusSerializer,
+        404: {"description": "Task not found"}
+    }
+)
 class TaskStatusAPIView(APIView):
     
     def get(self, request, task_id):
