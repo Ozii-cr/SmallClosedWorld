@@ -42,5 +42,8 @@ RUN chmod +x /app/entrypoint.sh
 # Run entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8000/swagger || exit 1
+
 # Command to run the application
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
