@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 from .models import ProcessRequest
 from .serializers import ProcessRequestSerializer, ProcessResponseSerializer, TaskStatusSerializer
@@ -28,6 +29,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
     ]
 )
 class ProcessAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     
     def post(self, request):
         serializer = ProcessRequestSerializer(data=request.data)
@@ -69,6 +71,7 @@ class ProcessAPIView(APIView):
     }
 )
 class TaskStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, task_id):
         try:
