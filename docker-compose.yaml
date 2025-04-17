@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    entrypoint: ["/app/entrypoint.sh"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev_secret_key
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/scw
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - ENVIRONMENT=production
+    depends_on:
+      - db
+      - redis
+    networks:
+      - my_network 
+
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data_scw:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=scw
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network 
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network 
+
+
+  celery_worker:
+    build: .
+    entrypoint: ["/app/entrypoint.sh"]  
+    command: ["celery", "-A", "core", "worker", "-l", "info"]
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev_secret_key
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/scw
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - ENVIRONMENT=production
+    depends_on:
+      - db
+      - redis
+    networks:
+      - my_network 
+
+volumes:
+  postgres_data_scw:
+
+networks:
+  my_network: 
+    driver: bridge  
