@@ -3,7 +3,7 @@ from celery import Celery
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(override=True)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
