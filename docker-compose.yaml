@@ -5,8 +5,6 @@ services:
     build: .
     entrypoint: ["/app/entrypoint.sh"]
     command: ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
     environment:
@@ -47,8 +45,6 @@ services:
     build: .
     entrypoint: ["/app/entrypoint.sh"]  
     command: ["celery", "-A", "core", "worker", "-l", "info"]
-    volumes:
-      - .:/app
     environment:
       - DEBUG=False
       - SECRET_KEY=dev_secret_key
