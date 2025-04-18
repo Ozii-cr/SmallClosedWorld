@@ -16,6 +16,10 @@ jobs:
   terraform-ap-south-1:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
 
     steps:
       - name: Checkout source code 
