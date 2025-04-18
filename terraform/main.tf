@@ -1,5 +1,5 @@
 module "required_providers" {
-  source               = "/modules/providers"
+  source               = "./modules/providers"
   aws_provider_region  = var.aws_region
   provider_environment = "dev"
 }
@@ -8,7 +8,7 @@ module "required_providers" {
 # Ecr repositories
 ################################################################################
 module "ecr_repositories" {
-  source = "/modules/ecr-repository"
+  source = "./modules/ecr-repository"
 
   repositories = {
     scw-app = "scw-app"
