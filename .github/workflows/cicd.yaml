@@ -23,6 +23,10 @@ jobs:
         - name: Install dependencies
           run: |
             pip install -r requirements.txt
+
+        - name: create env file
+          run: |
+            echo "SECRET_KEY=dummy_key" > .env
   
         - name: Run Django tests
           run: |
