@@ -45,6 +45,8 @@ jobs:
 
       - name: Terraform plan
         id: plan
+        env:
+          TF_VAR_ssh_public_key_dev: ${{ secrets.SSH_DEV_KEY}
         run: terraform plan -no-color -input=false -out planfile
         continue-on-error: true
 
