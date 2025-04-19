@@ -82,3 +82,20 @@ resource "aws_security_group" "ScwServerSG" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+################################################################################
+# EC2
+################################################################################
+module "scw_server" {
+  source            = "./modules/ec2-instance"
+  key_name          = "ScwKey"
+  ssh_public_key    = var.ssh_public_key_dev
+  ami               = var.ami_id
+  instance_type     = "t2.micro"
+  security_group_id = aws_security_group.ScwServerSG.id
+  subnet_id         = module.dev_vpc.public_subnets[0]
+  instance_name     = "Scw Server"
+  volume_size       = 8
+  enable_eip        = false
+  instance_state    = "running"
+}
