@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scw-app-web
+  namespace: scw-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scw-app-web
+  template:
+    metadata:
+      labels:
+        app: scw-app-web
+    spec:
+      containers:
+      - name: scw-app-web
+        image: scw-app:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: django-config
+        - secretRef:
+            name: django-secrets
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          python manage.py migrate --noinput
+          gunicorn task_processor.wsgi:application --bind 0.0.0.0:8000
