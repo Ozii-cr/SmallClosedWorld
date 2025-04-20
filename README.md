@@ -4,6 +4,19 @@ A Django REST Framework API with background task processing using Celery and Red
 
 ---
 
+## Project Structure
+
+| Folder/File            | Description                               |
+| ---------------------  | ------------------------------------------|
+| `.github/`             | GitHub Actions workflows for CI/CD        |
+| `api/`                 | App for API endpoints                     |
+| `core/`                | project core settings and config          |
+| `kubernetes/`          | Kubernetes deployment manifests           |
+| `terraform/`           | Terraform configuration for AWS infra     |
+| `.env.example`         | Example environment variables             |
+| `docker-compose.yaml`  | Docker Compose configuration              |
+| `Dockerfile`           | Dockerfile for building the app image     |
+
 ## Features
 - Secure REST API with JWT authentication
 - Asynchronous background task processing with Celery
@@ -175,4 +188,101 @@ python manage.py test api.tests
 | Start Celery Worker | `celery -A core worker -l info` |
 
 ---
+## Setup on Minikube
+## Prerequisites
 
+- Docker installed and running
+- Minikube installed
+- kubectl installed
+
+## Deployment Steps
+
+### 1. Start Minikube
+
+```bash
+# Start Minikube with sufficient resources
+minikube start --cpus 2 --memory 4096 --driver=docker
+
+# Enable Ingress addon 
+minikube addons enable ingress
+```
+
+### 2. Build the Docker Image
+
+```bash
+# Set Docker to use Minikube's Docker daemon
+eval $(minikube docker-env)
+
+# Build the image from your project directory
+docker build -t scw-app:latest .
+```
+
+### 3. Create the Namespace
+
+```bash
+kubectl apply -f kubernetes/namespace.yaml
+```
+
+### 4. Set up PostgreSQL
+
+```bash
+# Create persistent volume and persistent volume claim
+kubectl apply -f kubernetes/postgres-pv.yaml
+kubectl apply -f kubernetes/postgres-pvc.yaml
+
+# Create config and secrets
+kubectl apply -f kubernetes/postgres-configmap.yaml
+kubectl apply -f kubernetes/postgres-secret.yaml
+
+# Deploy PostgreSQL
+kubectl apply -f kubernetes/postgres-deployment.yaml
+kubectl apply -f kubernetes/postgres-service.yaml
+
+# Verify PostgreSQL is running
+kubectl get pods -n scw-app -l app=postgres
+```
+
+### 5. Set up Redis
+
+```bash
+# Deploy Redis
+kubectl apply -f kubernetes/redis-deployment.yaml
+kubectl apply -f kubernetes/redis-service.yaml
+
+# Verify Redis is running
+kubectl get pods -n scw-app -l app=redis
+```
+
+### 6. Deploy Django and Celery
+
+```bash
+# Create config and secrets
+kubectl apply -f kubernetes/scw-app-configmap.yaml
+kubectl apply -f kubernetes/scw-app-secret.yaml
+
+# Deploy Django web application
+kubectl apply -f kubernetes/scw-app-deployment.yaml
+kubectl apply -f kubernetes/scw-app-service.yaml
+
+# Deploy Celery worker
+kubectl apply -f kubernetes/celery-deployment.yaml
+
+# Verify all components are running
+kubectl get pods -n scw-app
+```
+
+### 7. Accessing the Application
+
+```bash
+# Method 1: Port-forward
+kubectl port-forward svc/scw-app-service 8000:80 -n scw-app
+
+# Method 2: Minikube service URL
+minikube service scw-app-service -n scw-app --url
+```
+
+### 8. Testing the API
+
+```bash
+# Test the API (using port-forwarding method)
+curl -X GET http://localhost:8000/api/v1/swagger/ 
