@@ -1,10 +1,10 @@
 name: CICD SCW app
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - dev 
+  # push:
+  #   branches:
+  #     - main
+  #     - dev 
 
 
 jobs:
@@ -138,7 +138,7 @@ jobs:
           
           script: |
             # Configure AWS CLI on the EC2 instance
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION_MAIN }} | docker login --username AWS --password-stdin ${{ secrets.REGISTRY_STAGING}}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION_MAIN }} | docker login --username AWS --password-stdin ${{ secrets.REGISTRY}}
             echo "Pulling Docker image: ${{ env.IMAGE_URI}}"
             docker pull ${{ env.IMAGE_URI}}
             echo "Running new container..."
@@ -155,7 +155,7 @@ jobs:
           status: ${{ job.status }}
           env: ${{ steps.deployment.outputs.env }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-          env_url: https://scw.vitalenex.com
+          env_url: https://scw.vitalenex.com/api/v1/swagger/
         
    
     
